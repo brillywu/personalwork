@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
 //    if (parser.isSet(dontUseCustomDirectoryIconsOption))
 //        model.setOption(QFileSystemModel::DontUseCustomDirectoryIcons);
