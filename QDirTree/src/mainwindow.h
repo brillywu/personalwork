@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QFileSystemModel>
+#include <QJsonDocument>
+
 namespace Ui {
 class MainWindow;
 }
@@ -25,6 +27,13 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QFileSystemModel model;
+    QJsonDocument appcfg;
+    QMenu* file_item_menu;
+    QMenu* folder_item_menu;
+    QMenu* file_open_with;
+
+private slots:
+     void openwith();
 };
 
 #endif // MAINWINDOW_H

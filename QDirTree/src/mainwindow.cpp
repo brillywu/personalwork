@@ -3,19 +3,37 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QScroller>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMenu>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    file_item_menu(new QMenu()),
+    folder_item_menu(new QMenu())
 {
     ui->setupUi(this);
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    QString appcfg_filename= QCoreApplication::applicationDirPath() + "/app.cfg";
+    qDebug() << appcfg_filename;
+    QFile loadFile( appcfg_filename );
+
+    if (loadFile.open(QIODevice::ReadOnly)) {
+        qInfo("open app.cfg ok.");
+        QByteArray saveData = loadFile.readAll();
+        appcfg =  QJsonDocument::fromJson(saveData);
+        loadFile.close();
+        file_open_with = file_item_menu->addMenu(tr("open with...") );
+
+    } else {
+        qWarning("Couldn't open appcfg file.");
+    }
 //    if (parser.isSet(dontUseCustomDirectoryIconsOption))
 //        model.setOption(QFileSystemModel::DontUseCustomDirectoryIcons);
 //    if (parser.isSet(dontWatchOption))
-//        model.setOption(QFileSystemModel::DontWatchForChanges);
-
+//        model.setOption(QFileSystemModel::DontWatchForChanges);    
 }
 
 MainWindow::~MainWindow()
@@ -75,19 +93,48 @@ void MainWindow::on_cb_folders_currentTextChanged(const QString &arg1)
 
 }
 
+
+void MainWindow::openwith()
+{
+    qDebug() << "openwith()...";
+}
+
 void MainWindow::on_treeView_customContextMenuRequested(const QPoint &pos)
 {
     //! 创建右键菜单
-    QMenu menu;
 
-    //! 添加右键菜单中的action
+    QModelIndex index = ui->treeView->currentIndex();
+//    QString fileName = this->model.data(
+//                this->model.index(index.row(), 1)
+//                ).toString();
+//    fileName="123.md";
+//    QFileInfo fi(fileName);
+    QMenu* menu=nullptr;
 
-    QAction* action1 = new QAction(&menu);
-    action1 ->setObjectName("action1 ");
-    action1 ->setText(tr("1111"));
-    menu.addAction(action1 );
+    if( model.isDir(index) ){
+    } else {
+        menu=this->file_item_menu;
+        QString ext=model.fileInfo(index).suffix();
+        if( appcfg["filehandler"][ext].isArray() ){
+            const QJsonArray oa = appcfg["filehandler"][ext].toArray();
+            for( QJsonArray::const_iterator it=oa.begin(); it != oa.end() ;it ++){
+                QJsonObject one=(*it).toObject();
+                for (QJsonObject::const_iterator i = one.begin(); i != one.end(); ++i) {
+                    if (i.value().isNull()){
+                            qDebug() << i.key();
+                    } else {
+                        qDebug() << i.key() << i.value();
+                        QAction* action =this->file_open_with->addAction(i.key() );
+                        action->setData( i.value() );
+                        connect(action, &QAction::triggered, this, &MainWindow::openwith);
+                    }
+                }
+            }
+        } else {
+            menu->addMenu("no operation.");
+        }
 
-    //! 显示该菜单，进入消息循环
-    menu.exec(ui->treeView->mapToGlobal(pos)/*全局位置*/);
+    }
 
+    if( menu != nullptr) menu->exec(ui->treeView->mapToGlobal(pos)/*全局位置*/);
 }
