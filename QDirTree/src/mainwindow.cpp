@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
         qInfo("open app.cfg ok.");
         QByteArray saveData = loadFile.readAll();
         appcfg =  QJsonDocument::fromJson(saveData);
+        qDebug() << appcfg;
         loadFile.close();
         file_open_with = file_item_menu->addMenu(tr("open with...") );
 
