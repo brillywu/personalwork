@@ -1,3 +1,4 @@
 
 build-QDirTree-Desktop_Qt_*/
 *.user
+.vs/
